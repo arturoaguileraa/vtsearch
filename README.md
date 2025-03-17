@@ -3,7 +3,7 @@
 This is the backend for the **Query Translator** project, developed in **Python** using `pydantic` for data validation and other utilities. This backend processes queries and transforms data efficiently.
 
 ## 🎥 Test Video
-Here is a sample test video demonstrating the backend with a simple Next.js frontend:
+Here is a sample test video demonstrating the backend with a simple Next.js frontend. In this example, a query was passed in Spanish with intentional spelling mistakes to test the system’s ability to handle and process imperfect input:
 
 ![Demo GIF](media/VTSearch.gif)
 

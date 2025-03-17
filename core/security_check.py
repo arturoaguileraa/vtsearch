@@ -1,4 +1,4 @@
-from core.ai_client import query_gemini
+from core.ai_client import query_ai
 
 def is_security_query(text: str) -> bool:
     """Check if the query is related to security analysis."""
@@ -18,5 +18,5 @@ def is_security_query(text: str) -> bool:
     
     Output (true/false):"""
     
-    response = query_gemini(validation_prompt.format(text=text)).strip().lower()
+    response = query_ai(validation_prompt.format(text=text)).strip().lower()
     return "true" in response

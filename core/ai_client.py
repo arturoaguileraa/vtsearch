@@ -11,7 +11,7 @@ genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 VALID_CATEGORIES = {"FILE", "URL", "DOMAIN", "IP", "COLLECTION"}
 
-def query_gemini(prompt: str) -> str:
+def query_ai(prompt: str) -> str:
     """Consulta a Gemini o a Ollama dependiendo del valor de isOllama."""
     if isOllama:
         return query_ollama(prompt)
@@ -37,7 +37,7 @@ def classify_query(query_text: str) -> str:
     attempts = 0
     
     while attempts < max_attempts:
-        response_text = query_gemini(CLASSIFICATION_PROMPT.format(query=query_text))
+        response_text = query_ai(CLASSIFICATION_PROMPT.format(query=query_text))
         category = response_text.strip().upper()
         if any(valid in category for valid in VALID_CATEGORIES):
             return category

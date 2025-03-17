@@ -1,4 +1,4 @@
-from core.ai_client import classify_query, query_gemini
+from core.ai_client import classify_query, query_ai
 from fastapi import HTTPException
 from handlers.file_handler import FileSearchQuery
 from handlers.ip_handler import IPSearchQuery
@@ -21,7 +21,7 @@ def process_generic_query(user_input: str, schema_model):
     """
     
     print("Sending prompt to AI model...")
-    response = query_gemini(prompt)
+    response = query_ai(prompt)
     print(response)
     
     try:

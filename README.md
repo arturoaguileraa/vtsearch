@@ -2,6 +2,12 @@
 
 This is the backend for the **Query Translator** project, developed in **Python** using `pydantic` for data validation and other utilities. This backend processes queries and transforms data efficiently.
 
+## 🎥 Test Video
+Here is a sample test video demonstrating the backend:
+
+![Test Video](media/VT-Pydantic-Demo.mp4)
+
+
 ## 🚀 Setting Up the Environment
 
 To run this backend on your local machine, follow these steps:

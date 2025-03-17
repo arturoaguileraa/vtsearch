@@ -5,7 +5,7 @@ This is the backend for the **Query Translator** project, developed in **Python*
 ## 🎥 Test Video
 Here is a sample test video demonstrating the backend:
 
-![Test Video](media/VT-Pydantic-Demo.mp4)
+![Demo GIF](media/VTDemo.gif)
 
 
 ## 🚀 Setting Up the Environment

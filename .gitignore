@@ -1,0 +1,27 @@
+# Ignorar entornos virtuales
+venv/
+.env
+pyvenv.cfg
+
+# Ignorar archivos de caché de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignorar archivos de logs y bases de datos temporales
+*.log
+*.sqlite3
+*.db
+
+# Ignorar configuraciones de IDEs y editores de código
+.vscode/
+.idea/
+*.iml
+
+# Ignorar archivos generados por sistemas operativos
+.DS_Store
+Thumbs.db
+
+# Ignorar dependencias descargadas de paquetes
+pip-wheel-metadata/

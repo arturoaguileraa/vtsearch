@@ -23,10 +23,10 @@ FIELD_MAPPINGS = {
         "children_positives": "cp",
         "times_submitted": "s",
         "unique_sources": "us",
-        "is_signed": "signed",
-        "p2p_cnc": "suspicious-udp",
-        "resolves_many_domains": "nxdomain",
-        "communicates_with_dga": "suspicious-dns"
+        "is_signed": "tag:signed",
+        "p2p_cnc": "tag:suspicious-udp",
+        "resolves_many_domains": "tag:nxdomain",
+        "communicates_with_dga": "tag:suspicious-dns"
     },
     "URL": {
         "url_contains": "url",
@@ -74,67 +74,36 @@ FIELD_MAPPINGS = {
     },
     "DOMAIN": {
         "domain_contains": "domain",
+        "domain_depth": "depth",
         "tld": "tld",
-        "depth": "depth",
-        "a_record": "a_record",
-        "a_record_ttl": "a_record_ttl",
-        "aaaa_record": "aaaa_record",
-        "aaaa_record_ttl": "aaaa_record_ttl",
-        "caa_record": "caa_record",
-        "cname_record": "cname_record",
-        "dname_record": "dname_record",
-        "mx_record": "mx_record",
-        "ns_record": "ns_record",
-        "soa_record": "soa_record",
-        "txt_record": "txt_record",
-        "category": "category",
-        "creation_date": "creation_date",
-        "last_update_date": "last_update_date",
-        "popularity_rank": "popularity_rank",
+        "categories_contains": "category",
         "positive_detections": "p",
-        "reputation": "reputation",
-        "ssl_issuer": "ssl_issuer",
-        "ssl_serial": "ssl_serial",
-        "ssl_subject": "ssl_subject",
-        "ssl_thumbprint": "ssl_thumbprint",
+        "antivirus_label": "engines",
+        "popularity_rank": "popularity_rank",
         "whois_contains": "whois",
-        "parent_domain": "parent_domain",
-        "threat_actor": "threat_actor"
+        "tags": "tag",
+        "resolution_ttl": "ttl",
+        "txt_record_contains": "txt_record",
+        "creation_update_date_after": ["creation_date", "last_update_date"],
+        "has_detected_downloaded_files": "detected_downloaded_files_count:1+",
+        "has_detected_urls": "detected_urls_count:1+",
+        "has_detected_communicating_files": "detected_communicating_files_count:1+",
+        "has_detected_files_referring": "detected_referring_files_count:1+"
+
     },
     "IP": {
         "ip_cidr_range": "ip",
-        "autonomous_system_number": "asn",
-        "autonomous_system_owner": "aso",
-        "country": "country",
-        "continent": "continent",
-        "comment": "comment",
-        "comment_author": "comment_author",
         "positive_detections": "p",
         "antivirus_label": "engines",
-        "reputation": "reputation",
-        "domain_resolutions_count": "domain_resolutions_count",
-        "detected_communicating_files_count": "detected_communicating_files_count",
-        "communicating_files_max_detections": "communicating_files_max_detections",
-        "detected_downloaded_files_count": "detected_downloaded_files_count",
-        "downloaded_files_max_detections": "downloaded_files_max_detections",
-        "detected_referring_files_count": "detected_referring_files_count",
-        "referring_files_max_detections": "referring_files_max_detections",
-        "detected_urls_count": "detected_urls_count",
-        "urls_max_detections": "urls_max_detections",
-        "ssl_issuer": "ssl_issuer",
-        "ssl_serial": "ssl_serial",
-        "ssl_subject": "ssl_subject",
-        "ssl_thumbprint": "ssl_thumbprint",
+        "tags": "tag",
         "whois_contains": "whois",
-        "last_modification_date": "lm",
-        "jarm": "jarm",
-        "ssl_not_before": "ssl_not_before",
-        "ssl_not_after": "ssl_not_after",
-        "threat_actor": "threat_actor",
-        "has_detected_downloaded_files": "tag:detected_downloaded_files",
-        "has_detected_urls": "tag:detected_urls",
-        "has_detected_communicating_files": "tag:detected_communicating_files",
-        "has_detected_files_referring": "tag:detected_referring_files"
+        "country": "country",
+        "autonomous_system_contains": "aso",
+        "domain_resolutions_count": "domain_resolutions_count",
+        "has_detected_downloaded_files": "detected_downloaded_files_count:1+",
+        "has_detected_urls": "detected_urls_count:1+",
+        "has_detected_communicating_files": "detected_communicating_files_count:1+",
+        "has_detected_files_referring": "detected_referring_files_count:1+"
     }
 }
 
@@ -149,10 +118,21 @@ def format_value(field: str, vt_key: str, value: Union[str, int, float, bool]) -
             else:
                 formatted_value = f"{int(value / (1024 * 1024))}MB"
             return f"{formatted_value}+" if "min" in field else f"{formatted_value}-"
+
     elif vt_key in ["ls", "fs", "la"]:  # Handle timestamps
         return f"{value}+" if "after" in field else f"{value}-"
-    elif vt_key in ["p", "s", "us"]:  # Fields that use + suffix for minimum values REVISAR
+
+    elif vt_key in ["p", "s", "us"]:  # Fields that use + suffix for minimum values
         return f"{value}+"
+
+    # Si el valor es un array de strings, aplicar comillas solo a los que tengan espacios
+    elif isinstance(value, list):
+        return " ".join(f'"{v}"' if " " in v else v for v in value)
+
+    # Si el valor es un string con espacios, ponerlo entre comillas
+    elif isinstance(value, str) and " " in value:
+        return f'\"{value}\"'
+
     return str(value)
 
 def convert_query_to_vt_format(query_data: dict, category: str) -> str:
@@ -167,18 +147,35 @@ def convert_query_to_vt_format(query_data: dict, category: str) -> str:
     for field, vt_key in field_mappings.items():
         if field in query_data:
             field_data = query_data[field]
+
+            # Si es una lista de valores en FIELD_MAPPINGS (como ["creation_date", "last_update_date"])
+            if isinstance(vt_key, list):
+                or_conditions = []
+                for key in vt_key:
+                    formatted_value = format_value(field, key, field_data["value"])
+                    or_conditions.append(f"{key}:{formatted_value}+")
+
+                vt_query.append(f"( {' OR '.join(or_conditions)} )")
+                continue
+
+            # Manejar booleanos (si field_data es True)
             if isinstance(field_data, bool) and field_data:
-                vt_query.append(f"tag:{vt_key}")
-            elif isinstance(field_data, dict):
+                vt_query.append(f"{vt_key}")
+                continue
+
+            # Manejar negaciones y listas
+            if isinstance(field_data, dict):
                 prefix = "NOT " if field_data.get("is_negative", False) else ""
                 values = field_data["value"]
+
                 if isinstance(values, list):
                     for value in values:
                         vt_query.append(f"{prefix}{vt_key}:{format_value(field, vt_key, value)}")
                 elif isinstance(values, bool) and values:
                     print("AAG - Warning: Boolean value found in field_data.")
-                    vt_query.append(f"tag:{vt_key}")  # Esto en verdad no debería de ocurrir nunca ya que un bool no tiene value.
+                    vt_query.append(f"tag:{vt_key}")  # Esto no debería ocurrir nunca, pero es un fallback
                 else:
                     vt_query.append(f"{prefix}{vt_key}:{format_value(field, vt_key, values)}")
     
     return " ".join(vt_query)
+

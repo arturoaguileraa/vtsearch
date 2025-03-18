@@ -10,8 +10,8 @@ from utils.json_from_text import extract_json_from_text
 # Generalized function to process any category
 def process_generic_query(user_input: str, schema_model):
     prompt = f"""
-    Extract structured data from the following natural language query, without explaining ANYTHING inside the JSON. DO NOT EXPLAIN ANYTHING.
-    Use the schema where each field has:
+    Extract structured data from the following natural language query, without explaining ANYTHING. DO NOT EXPLAIN ANYTHING.
+    Use the following schema to construct the JSON where some field has:
     - `is_negative`: to indicate negations.
     
     Schema:

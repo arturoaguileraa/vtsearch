@@ -1,6 +1,6 @@
-from core.ai_client import query_ai
+from core.ai_client import AIClient
 
-def is_security_query(text: str) -> bool:
+def is_security_query(client: AIClient, text: str) -> bool:
     """Check if the query is related to security analysis."""
     validation_prompt = """You are a computer science query validator. Determine if the query is related to malware, files, domains, IP, or URLs.
     Return ONLY "true" or "false". Do not give any additional explanation.
@@ -17,6 +17,5 @@ def is_security_query(text: str) -> bool:
     {text}
     
     Output (true/false):"""
-    
-    response = query_ai(validation_prompt.format(text=text)).strip().lower()
+    response = client.query_ai(validation_prompt.format(text=text)).strip().lower()
     return "true" in response

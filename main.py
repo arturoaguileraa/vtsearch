@@ -6,6 +6,7 @@ from core.query_processing import process_query
 from core.input_validation import is_raw_input
 from core.text_utils import translate_to_english
 from core.security_check import is_security_query
+from core.ai_client import AIClient
 
 app = FastAPI()
 
@@ -28,9 +29,10 @@ async def query_api(request: QueryRequest):
     if is_raw:
         return {"formatted_query": request.query, "vt_format": request.query, "category": input_type}
     
-    translated_query = translate_to_english(request.query)
+    client = AIClient("Gemini")  # default provider
+    translated_query = translate_to_english(client, request.query)
     
-    if not is_security_query(translated_query):
+    if not is_security_query(client, translated_query):
         return {"formatted_query": "Mmmm... Are you sure you're asking about malware?", "vt_format": "Mmmm... Are you sure you're asking about malware?", "category": "Error"}
     
-    return process_query(translated_query, request.category)
+    return process_query(client, translated_query, request.category)

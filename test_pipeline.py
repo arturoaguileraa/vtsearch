@@ -1,7 +1,7 @@
 import logging
 from core.logical_conversion import convert_to_logical_expression
 from handlers.modifier_handler import process_logical_query
-from core.ai_client import classify_query
+from core.ai_client import AIClient
 
 # Configurar logging para mostrar información detallada
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -16,7 +16,8 @@ def test_pipeline(query: str):
     logging.info(f"📌 Expresión lógica generada: {logical_query}")
 
     # Paso 2: Clasificar la categoría automáticamente
-    category = classify_query(query)
+    client = AIClient("Gemini")
+    category = client.classify_query(query)
     logging.info(f"📂 Categoría detectada: {category}")
 
     # Paso 3: Procesar los términos y convertirlos en operadores de VT Intelligence

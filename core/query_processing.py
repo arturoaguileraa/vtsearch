@@ -1,4 +1,4 @@
-from core.ai_client import classify_query, query_ai
+from core.ai_client import AIClient
 from fastapi import HTTPException
 from handlers.file_handler import FileSearchQuery
 from handlers.ip_handler import IPSearchQuery
@@ -6,9 +6,10 @@ from handlers.url_handler import URLSearchQuery
 from handlers.domain_handler import DomainSearchQuery
 from utils.json_to_vt import convert_query_to_vt_format
 from utils.json_from_text import extract_json_from_text
+import json
 
 # Generalized function to process any category
-def process_generic_query(user_input: str, schema_model):
+def process_generic_query(client: AIClient, user_input: str, schema_model):
     prompt = f"""
     Extract structured data from the following natural language query, without explaining ANYTHING. DO NOT EXPLAIN ANYTHING.
     Use the following schema to construct the JSON where some field has:
@@ -21,7 +22,7 @@ def process_generic_query(user_input: str, schema_model):
     """
     
     print("Sending prompt to AI model...")
-    response = query_ai(prompt)
+    response = client.query_ai(prompt)
     print(response)
     
     try:
@@ -34,8 +35,8 @@ def process_generic_query(user_input: str, schema_model):
     except json.JSONDecodeError:
         return {"error": "Could not interpret the response."}
 
-def process_query(query: str, category: str = None):
-    category = category or classify_query(query)
+def process_query(client: AIClient, query: str, category: str = None):
+    category = category or client.classify_query(query)
     
     print("Category:", category)
     

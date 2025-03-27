@@ -3,45 +3,69 @@ import os
 from core.prompts import CLASSIFICATION_PROMPT
 from langchain_ollama import OllamaLLM
 
-# Variable para alternar entre Gemini y Ollama
-isOllama = True  # Cambia a False para usar Gemini
+# Modelos IA según proveedor
+AI_MODELS = {
+    "Ollama": "phi4:14b", 
+    "Gemini": "gemini-1.5-flash"
+}
 
-# Configurar la API Key para Gemini
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+class AIClient():
 
-VALID_CATEGORIES = {"FILE", "URL", "DOMAIN", "IP", "COLLECTION"}
+    def __init__(self, provider: str):
+        if provider not in AI_MODELS:
+            raise ValueError(f"Proveedor inválido, debe elegir entre {', '.join(AI_MODELS.keys())}.")
 
-def query_ai(prompt: str) -> str:
-    """Consulta a Gemini o a Ollama dependiendo del valor de isOllama."""
-    if isOllama:
-        return query_ollama(prompt)
-    
-    try:
-        model = genai.GenerativeModel("gemini-1.5-flash")
-        response = model.generate_content(prompt)
-        return response.text.strip() if response and response.text else "Error"
-    except Exception:
-        return "Error"
+        self.provider = provider
+        self.model = AI_MODELS[provider]
 
-def query_ollama(prompt: str) -> str:
-    try:
-        model = OllamaLLM(model="phi4:14b")
-        response_text = model.invoke(prompt)
+
+    def query_ai(self, prompt: str) -> str:
+        """Consulta al proveedor de IA con el que se ha configurado."""
+        provider_mapping = {
+            "Ollama": self._query_ollama,
+            "Gemini": self._query_gemini,
+        }
+        
+        try:
+            return provider_mapping[self.provider](prompt)
+        except KeyError:
+            raise ValueError(f"Proveedor desconocido: {self.provider}")
+          
+
+    def _query_gemini(self, prompt: str) -> str:
+        # Configurar la API Key para Gemini
+        genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+        try:
+            model = genai.GenerativeModel(model_name=self.model)
+            response = model.generate_content(prompt)
+        except Exception as e:
+            return f"Error: {str(e)}"
+        
+        return response.text.strip() if response and response.text else "Sin respuesta."
+
+
+    def _query_ollama(self, prompt: str) -> str:
+        try:
+            model = OllamaLLM(model=self.model)
+            response_text = model.invoke(prompt)
+        except Exception as e:
+            return f"Error: {str(e)}"
+        
         return response_text.strip()
-    except Exception:
-        return "Error"
-
-def classify_query(query_text: str) -> str:
-    """Clasifica la consulta en File, URL, Domain o IP usando Gemini u Ollama según la configuración."""
-    max_attempts = 10
-    attempts = 0
     
-    while attempts < max_attempts:
-        response_text = query_ai(CLASSIFICATION_PROMPT.format(query=query_text))
-        category = response_text.strip().upper()
-        if any(valid in category for valid in VALID_CATEGORIES):
-            return category
+
+    def classify_query(self, query_text: str) -> str:
+        """Clasifica la consulta en File, URL, Domain o IP usando el proveedor configurado."""
+        VALID_CATEGORIES = {"FILE", "URL", "DOMAIN", "IP", "COLLECTION"}
+        max_attempts = 10
+        attempts = 0
         
-        attempts += 1
-        
-    return "Error"
+        while attempts < max_attempts:
+            response_text = self.query_ai(CLASSIFICATION_PROMPT.format(query=query_text))
+            category = response_text.strip().upper()
+            if any(valid in category for valid in VALID_CATEGORIES):
+                return category
+            
+            attempts += 1
+            
+        return "Error en la clasificación."

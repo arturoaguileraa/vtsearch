@@ -57,7 +57,6 @@ uvicorn main:app --reload
 ## 📂 Project Structure
 ```
 query_translator/
-│── config/            # Project configuration
 │── core/              # Main logic (query processing, validation)
 │── handlers/          # Event and route handlers
 │── utils/             # Additional utilities

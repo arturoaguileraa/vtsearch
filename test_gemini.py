@@ -1,8 +1,10 @@
 import google.generativeai as genai
 import os
-from core.ai_client import query_gemini
+from core.ai_client import query_ai
+from dotenv import load_dotenv
 
 # Configurar la API Key
+load_dotenv()
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 def test_gemini_query():
@@ -11,7 +13,7 @@ def test_gemini_query():
 
     try:
         print("🔄 Enviando consulta a Gemini...")
-        response = query_gemini(test_prompt)
+        response = query_ai(test_prompt)
 
         if response:
             print("✅ Conexión exitosa con Gemini!")

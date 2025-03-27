@@ -1,5 +1,6 @@
 # Ignorar entornos virtuales
 venv/
+.venv/
 .env
 pyvenv.cfg
 

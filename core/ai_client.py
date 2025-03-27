@@ -2,11 +2,13 @@ import google.generativeai as genai
 import os
 from core.prompts import CLASSIFICATION_PROMPT
 from langchain_ollama import OllamaLLM
+from dotenv import load_dotenv
 
 # Variable para alternar entre Gemini y Ollama
-isOllama = True  # Cambia a False para usar Gemini
+isOllama = False  # Cambia a False para usar Gemini
 
 # Configurar la API Key para Gemini
+load_dotenv()
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 VALID_CATEGORIES = {"FILE", "URL", "DOMAIN", "IP", "COLLECTION"}
